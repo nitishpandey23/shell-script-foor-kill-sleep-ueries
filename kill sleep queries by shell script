@@ -1,0 +1,24 @@
+
+#!/bin/bash
+
+# Set MySQL credentials as environment variables
+export MYSQL_USER="dbuser"
+export MYSQL_PASSWORD="dbpassword"
+
+# Function to kill sleep queries
+kill_sleep_queries() {
+    local query="SELECT id FROM INFORMATION_SCHEMA.PROCESSLIST WHERE COMMAND = 'Sleep' AND TIME > 5;"
+    local process_ids=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" --skip-column-names -e "$query")
+
+    if [ -n "$process_ids" ]; then
+        for process_id in $process_ids; do
+            echo "Killing Sleep Query with Process ID: $process_id"
+            mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" -e "KILL $process_id;"
+        done
+    else
+        echo "No sleep queries running for more than 5 seconds."
+    fi
+}
+
+# Call the function to kill sleep queries
+kill_sleep_queries
